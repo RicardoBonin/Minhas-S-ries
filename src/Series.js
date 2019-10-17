@@ -40,7 +40,7 @@ if(data.length === 0) {
         <div className = 'container'>
             <h1>Séries</h1>
             <div><Link to='/series/novo' className='btn btn-primary'>Nova série</Link></div>
-            <div class='alert alert-warning' role='alert'>
+            <div className='alert alert-warning' role='alert'>
                 Você não possui séries criadas. 
             </div>
         </div>

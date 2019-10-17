@@ -7,8 +7,8 @@ const InfoSerie = ({ match }) => {
     const [form, setForm] = useState({})
     const [success, setSuccesse] = useState(false)
     const [mode, setMode] = useState('EDIT')
-    const [data, setData] = useState ({})
     const [genres, setGenres] = useState([])
+    const [data, setData] = useState ({})
     useEffect(() => {
         axios
         .get('/api/series/' + match.params.id)
@@ -19,11 +19,11 @@ const InfoSerie = ({ match }) => {
     }, [match.params.id])
     useEffect(() => {
         axios
-        .get('api/genres/')
+        .get('/api/genres')
         .then(res =>{
             setGenres(res.data.data)
         })
-    })
+    }, [])
     //custon header
     const masterHeader = {
         height: '50vh',
@@ -37,21 +37,26 @@ const InfoSerie = ({ match }) => {
     const onChange = field => evt => {
         setForm({
             ...form,
-            [field]:evt.target.value
+            [field]: evt.target.value
+        })
+    }
+
+    const seleciona = value =>() => {
+        setForm({
+            ...form,
+            status: value
         })
     }
 
     const save = () => {
         axios
-        .post('/api/series', {
-            form
-        })
+        .put('/api/series/' + match.params.id, form)
         .then(res => {
             setSuccesse(true)
         })
     }
     if(success) {
-        return <Redirect to='/series' /> 
+        //return <Redirect to='/series' /> 
     }
     return (
         <div>
@@ -67,6 +72,7 @@ const InfoSerie = ({ match }) => {
                                 <div className='lead text-white'>
                                     <Badge color='success'>Assistido</Badge>
                                     <Badge color='warning'>Para assistir</Badge>
+                                    Gênero: {data.genre}
                                 </div>
                             </div>
                         </div>    
@@ -93,10 +99,21 @@ const InfoSerie = ({ match }) => {
                     </div>
                     <div className='form-group'>
                         <label htmlFor='name'>Gênero</label>
-                        <select className='form-control'>
-                            { genres.map(genre => <option key={genre.id} value={genre.id}>{genre.name}</option>)}
-                            
+                        <select className='form-control' onChange={onChange('genre_id')}>
+                            { genres.map(genre => <option key={genre.id} value={genre.id} select={genre.id === form.genre}>{genre.name}</option>)}
                         </select>
+                        <div class="form-check">
+                            <input className='form-check-input' type='radio' name='status' id='assistido' value='ASSISTIDO' checked onClick={seleciona('ASSISTIDO')}/>
+                            <label className='form-check-label' htmlFor='assistido'>
+                                Assistido
+                            </label>
+                        </div>
+                        <div class='form-check'>
+                            <input className='form-check-input' type='radio' name='status' id='paraAsistir' value='PARA_ASSISTIR' onClick={seleciona('PARA_ASSISTIR')}/>
+                            <label className='form-check-label' htmlFor='paraAsistir'>
+                                Para assistir
+                            </label>
+                        </div>
                     </div>
                     <button type='button' onClick={save}  className='btn btn-primary'>Salvar</button>
                 </form>
