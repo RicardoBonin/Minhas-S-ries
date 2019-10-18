@@ -9,6 +9,7 @@ const InfoSerie = ({ match }) => {
     const [mode, setMode] = useState('EDIT')
     const [genres, setGenres] = useState([])
     const [data, setData] = useState ({})
+    const [genreId, setGenreId]= useState('')
     useEffect(() => {
         axios
         .get('/api/series/' + match.params.id)
@@ -22,8 +23,13 @@ const InfoSerie = ({ match }) => {
         .get('/api/genres')
         .then(res =>{
             setGenres(res.data.data)
+            const genres = res.data.data
+            const encontrado = genres.find(value => data.genre === value.name)
+            if (encontrado) {
+                setGenreId(encontrado.id)
+            }
         })
-    }, [])
+    }, [data])
     //custon header
     const masterHeader = {
         height: '50vh',
@@ -32,6 +38,10 @@ const InfoSerie = ({ match }) => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
+    }
+
+    const onChangeGenre = evt => {
+        setGenreId(evt.target.value)
     }
 
     const onChange = field => evt => {
@@ -50,13 +60,16 @@ const InfoSerie = ({ match }) => {
 
     const save = () => {
         axios
-        .put('/api/series/' + match.params.id, form)
+        .put('/api/series/' + match.params.id, {
+            ...form,
+            genre_id: genreId
+        })
         .then(res => {
             setSuccesse(true)
         })
     }
     if(success) {
-        //return <Redirect to='/series' /> 
+        return <Redirect to='/series' /> 
     }
     return (
         <div>
@@ -70,8 +83,8 @@ const InfoSerie = ({ match }) => {
                             <div className='col-8'>
                                 <h1 className='font-weight-light text-white'>{data.name}</h1>
                                 <div className='lead text-white'>
-                                    <Badge color='success'>Assistido</Badge>
-                                    <Badge color='warning'>Para assistir</Badge>
+                                    { data.status === 'ASSISTIDO' && <Badge color='success'>Assistido</Badge> }
+                                    { data.status === 'PARA_ASSISTIR' && <Badge color='warning'>Para assistir</Badge> }
                                     Gênero: {data.genre}
                                 </div>
                             </div>
@@ -99,17 +112,17 @@ const InfoSerie = ({ match }) => {
                     </div>
                     <div className='form-group'>
                         <label htmlFor='name'>Gênero</label>
-                        <select className='form-control' onChange={onChange('genre_id')}>
-                            { genres.map(genre => <option key={genre.id} value={genre.id} select={genre.id === form.genre}>{genre.name}</option>)}
+                        <select className='form-control' onChange={onChangeGenre} value={genreId}>
+                            { genres.map(genre => <option key={genre.id} value={genre.id}>{genre.name}</option>) }
                         </select>
-                        <div class="form-check">
-                            <input className='form-check-input' type='radio' name='status' id='assistido' value='ASSISTIDO' checked onClick={seleciona('ASSISTIDO')}/>
+                        <div className="form-check">
+                            <input className='form-check-input' type='radio' checked={form.status === 'ASSISTIDO'} name='status' id='assistido' value='ASSISTIDO'  onChange={seleciona('ASSISTIDO')}/>
                             <label className='form-check-label' htmlFor='assistido'>
                                 Assistido
                             </label>
                         </div>
-                        <div class='form-check'>
-                            <input className='form-check-input' type='radio' name='status' id='paraAsistir' value='PARA_ASSISTIR' onClick={seleciona('PARA_ASSISTIR')}/>
+                        <div className='form-check'>
+                            <input className='form-check-input' type='radio' checked={form.status === 'PARA_ASSISTIR'} name='status' id='paraAsistir' value='PARA_ASSISTIR' onChange={seleciona('PARA_ASSISTIR')}/>
                             <label className='form-check-label' htmlFor='paraAsistir'>
                                 Para assistir
                             </label>
@@ -117,7 +130,6 @@ const InfoSerie = ({ match }) => {
                     </div>
                     <button type='button' onClick={save}  className='btn btn-primary'>Salvar</button>
                 </form>
-
             </div>
             }
         </div> 
